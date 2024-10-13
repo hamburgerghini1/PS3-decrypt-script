@@ -1,6 +1,7 @@
 import os
 import subprocess
 from datetime import datetime
+from tqdm import tqdm  # Import tqdm for progress bar
 
 # Parameters
 iso_base_directory = "H:\\ps3"
@@ -53,7 +54,7 @@ def main():
         print(f"No ISO files found in the directory: {iso_base_directory}")
         return
 
-    for iso_file in iso_files:
+    for iso_file in tqdm(iso_files, desc="Decrypting ISOs", unit="file"):
         iso_file_name = os.path.basename(iso_file)
         if iso_file_name in key_map:
             decryption_key = key_map[iso_file_name]
