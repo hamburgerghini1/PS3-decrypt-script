@@ -1,5 +1,4 @@
 import os
-import shutil
 import subprocess
 from datetime import datetime
 
@@ -67,8 +66,7 @@ def main():
             log_message(f"Decrypting {iso_file} to {decrypted_file_name} with key '{decryption_key}'...", log_file_path)
 
             ps3dec_path = "H:\\ps3\\ps3dec.exe"
-            arguments = ["d", "key", decryption_key, "in", iso_file, decrypted_file_name]
-
+            arguments = ["d", "key", decryption_key, iso_file, decrypted_file_name]
             try:
                 with open(os.path.join(output_directory, "ps3dec_output.txt"), 'w') as stdout_file, \
                      open(os.path.join(output_directory, "ps3dec_error.txt"), 'w') as stderr_file:
