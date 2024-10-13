@@ -1,4 +1,4 @@
-Python script that automatically decrypts ps3isos using ps3dec
+Python script that automatically decrypts ps3 isos using ps3dec
 
 Download ps3dec https://www.romhacking.net/utilities/1456/
 
