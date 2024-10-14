@@ -31,6 +31,13 @@ key_map = {
 }
 
 def log_message(message, log_file_path):
+    """
+    Logs a message with a timestamp to both the console and a specified log file.
+
+    Args:
+        message (str): The message to log.
+        log_file_path (str): The path to the log file.
+    """
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"[{timestamp}] {message}"
     print(log_entry)
@@ -38,6 +45,11 @@ def log_message(message, log_file_path):
         log_file.write(log_entry + '\n')
 
 def main():
+    """
+    Main function to decrypt ISO files using specified keys and log the process.
+    It checks for the existence of the output directory, processes each ISO file,
+    and logs the decryption status.
+    """
     if not os.path.exists(output_directory):
         try:
             os.makedirs(output_directory)
