@@ -8,6 +8,7 @@ This script uses the older version that is made with C, the rust fork is not sup
 
 For now script is only for my own use and works only on windows and you have to manually change the paths for isos and ps3dec.
 
+Keys.txt is useless
 
 # Planned features
 Splitting isos for FAT32 HDDs
