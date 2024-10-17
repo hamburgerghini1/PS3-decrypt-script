@@ -10,5 +10,7 @@ For now script is only for my own use and works only on windows and you have to 
 
 Keys.txt is useless
 
+Made with AI for my personal use but wanted to put it public
+
 # Planned features
 Splitting isos for FAT32 HDDs
