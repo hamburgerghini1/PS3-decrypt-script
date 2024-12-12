@@ -16,4 +16,5 @@ Made with AI for my personal use but wanted to put it public
 
 # Planned features
 Splitting isos for FAT32 HDDs
+
 Linux Support
