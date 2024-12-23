@@ -6,6 +6,8 @@ PS3Dec GitHub https://github.com/al3xtjames/PS3Dec
 
 Get decryption keys here https://ps3.aldostools.org/dkey.html
 
+LINUX VERSION NOT TESTED!!
+
 This script uses the older version that is made with C, the rust fork is not supported since it has different syntax
 
 For now script is only for my own use and works only on windows and you have to manually change the paths for isos and ps3dec.
@@ -16,5 +18,3 @@ Made with AI for my personal use but wanted to put it public
 
 # Planned features
 Splitting isos for FAT32 HDDs
-
-Linux Support
