@@ -1,26 +1,26 @@
 import os
 import subprocess
 from datetime import datetime
-from tqdm import tqdm  # Progress bar
+from tqdm import tqdm
+import threading
 
-# Parameters: Set your directories here
 iso_base_directory = r"C:\Users\tommi\Downloads"
 output_directory = r"D:\emu\ps3"
 
 def log_message(message, log_file_path):
-    """
-    Logs a message with a timestamp to both the console and a specified log file.
-    """
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_entry = f"[{timestamp}] {message}"
     print(log_entry)
     with open(log_file_path, 'a') as log_file:
         log_file.write(log_entry + '\n')
 
+def stream_reader(pipe, log_file):
+    for line in iter(pipe.readline, ''):
+        print(line, end='')      # Print to console
+        log_file.write(line)     # Write to log file
+    pipe.close()
+
 def main():
-    """
-    Main function to decrypt ISO files using their corresponding .dkey files.
-    """
     if not os.path.exists(output_directory):
         try:
             os.makedirs(output_directory)
@@ -29,8 +29,9 @@ def main():
             return
 
     log_file_path = os.path.join(output_directory, "decryption_log.txt")
+    outlog_path = os.path.join(output_directory, "ps3dec_output.txt")
+    errlog_path = os.path.join(output_directory, "ps3dec_error.txt")
 
-    # Recursively find all ISO files in the base directory
     iso_files = [os.path.join(root, file)
                  for root, _, files in os.walk(iso_base_directory)
                  for file in files if file.lower().endswith('.iso')]
@@ -48,7 +49,6 @@ def main():
             log_message(f"No .dkey file found for {iso_file_name}. Skipping...", log_file_path)
             continue
 
-        # Read key from the .dkey file
         try:
             with open(dkey_file, "r") as f:
                 decryption_key = f.read().strip()
@@ -61,22 +61,37 @@ def main():
 
         decrypted_file_name = os.path.join(output_directory, os.path.splitext(iso_file_name)[0] + ".iso")
 
-        # Skip already decrypted files
         if os.path.exists(decrypted_file_name):
             log_message(f"Decrypted file already exists for {iso_file_name}. Skipping...", log_file_path)
             continue
 
         log_message(f"Decrypting {iso_file} to {decrypted_file_name} with key from {os.path.basename(dkey_file)}...", log_file_path)
 
-        # Path to the ps3dec executable
         ps3dec_path = r"C:\Users\tommi\Documents\GitHub\PS3-decrypt-script\ps3dec\ps3dec.exe"
         arguments = ["d", "key", decryption_key, iso_file, decrypted_file_name]
         try:
-            with open(os.path.join(output_directory, "ps3dec_output.txt"), 'a') as stdout_file, \
-                 open(os.path.join(output_directory, "ps3dec_error.txt"), 'a') as stderr_file:
-                subprocess.run([ps3dec_path] + arguments, stdout=stdout_file, stderr=stderr_file, check=True)
-        except subprocess.CalledProcessError as e:
-            log_message(f"Error decrypting {iso_file_name}: {e}", log_file_path)
+            with open(outlog_path, 'a', encoding='utf-8') as outlog_file, \
+                 open(errlog_path, 'a', encoding='utf-8') as errlog_file:
+                process = subprocess.Popen(
+                    [ps3dec_path] + arguments,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    bufsize=1
+                )
+
+                threads = []
+                threads.append(threading.Thread(target=stream_reader, args=(process.stdout, outlog_file)))
+                threads.append(threading.Thread(target=stream_reader, args=(process.stderr, errlog_file)))
+                for t in threads:
+                    t.start()
+                process.wait()
+                for t in threads:
+                    t.join()
+                if process.returncode != 0:
+                    log_message(f"Error decrypting {iso_file_name}: ps3dec exited with code {process.returncode}", log_file_path)
+        except Exception as e:
+            log_message(f"Exception occurred while decrypting {iso_file_name}: {e}", log_file_path)
 
     print(f"All ISO files processed. Log file created at {log_file_path}.")
 
