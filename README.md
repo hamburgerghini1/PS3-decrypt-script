@@ -1,8 +1,5 @@
 Python script that automatically decrypts ps3 isos using ps3dec
 
-Download ps3dec https://www.romhacking.net/utilities/1456/ not needed on Linux
-
-PS3Dec GitHub https://github.com/al3xtjames/PS3Dec
 
 Get decryption keys here https://ps3.aldostools.org/dkey.html
 
