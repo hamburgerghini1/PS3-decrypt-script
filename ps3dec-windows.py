@@ -4,8 +4,8 @@ from datetime import datetime
 from tqdm import tqdm  # Progress bar
 
 # Parameters: Set your directories here
-iso_base_directory = "C:\\Users\\tommi\Downloads"
-output_directory = "D:\emu\ps3"
+iso_base_directory = r"C:\Users\tommi\Downloads"
+output_directory = r"D:\emu\ps3"
 
 def log_message(message, log_file_path):
     """
@@ -69,7 +69,7 @@ def main():
         log_message(f"Decrypting {iso_file} to {decrypted_file_name} with key from {os.path.basename(dkey_file)}...", log_file_path)
 
         # Path to the ps3dec executable
-        ps3dec_path = "H:\\ps3\\ps3dec.exe"
+        ps3dec_path = r"C:\Users\tommi\Documents\GitHub\PS3-decrypt-script\ps3dec\ps3dec.exe"
         arguments = ["d", "key", decryption_key, iso_file, decrypted_file_name]
         try:
             with open(os.path.join(output_directory, "ps3dec_output.txt"), 'a') as stdout_file, \
