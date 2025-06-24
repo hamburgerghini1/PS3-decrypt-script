@@ -4,8 +4,8 @@ from datetime import datetime
 from tqdm import tqdm  # Progress bar
 
 # Parameters: Set your directories here
-iso_base_directory = "H:\\ps3"
-output_directory = "F:\\decrypted isos"
+iso_base_directory = "C:\\Users\\tommi\Downloads"
+output_directory = "D:\emu\ps3"
 
 def log_message(message, log_file_path):
     """
