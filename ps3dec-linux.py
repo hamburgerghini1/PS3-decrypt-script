@@ -15,7 +15,7 @@ import time
 from pathlib import Path
 import logging
 
-
+# ProgressBar class for visual feedback during decryption and verification
 class ProgressBar:
     def __init__(self, total, prefix='Progress:', length=50, fill='█', empty='░'):
         self.total = total
@@ -27,8 +27,8 @@ class ProgressBar:
         self.last_update = 0
 
     def update(self, current):
+        # Limit how often the progress bar updates to improve performance
         if time.time() - self.last_update < 0.2 and current < self.total:
-            # Limit updates to avoid excessive printing
             return
 
         self.last_update = time.time()
@@ -40,7 +40,6 @@ class ProgressBar:
         elapsed = time.time() - self.start_time
         speed = current / elapsed if elapsed > 0 else 0
         speed_str = f"{speed / (1024*1024):.2f} MB/s"
-
         remaining = (self.total - current) / speed if speed > 0 else 0
         remaining_str = f"{int(remaining // 60)}m {int(remaining % 60)}s"
 
@@ -48,13 +47,14 @@ class ProgressBar:
         current_mb = current / (1024*1024)
         total_mb = self.total / (1024*1024)
 
+        # Display progress bar and information
         sys.stdout.write(f"\r{self.prefix} |{bar}| {percent:.1%} • {current_mb:.1f}/{total_mb:.1f} MB • {speed_str} • ETA: {remaining_str}")
         sys.stdout.flush()
 
         if current >= self.total:
             sys.stdout.write('\n')
 
-
+# Main decrypter class
 class PS3IsoDecrypter:
     def __init__(self):
         self.downloads_dir = str(Path.home() / "Downloads")
@@ -62,7 +62,7 @@ class PS3IsoDecrypter:
         self.iso_files = []
         self.verbose = False
 
-        # Set up logging
+        # Set up logging to file and console
         self.log_file = os.path.join(str(Path.home()), "ps3_decrypt.log")
         logging.basicConfig(
             filename=self.log_file,
@@ -88,7 +88,7 @@ class PS3IsoDecrypter:
             print(f"WARNING: {message}")
 
     def verify_dependencies(self):
-        """Check if required tools are installed"""
+        """Check if required tools are installed (e.g., dd)"""
         self.log("Checking for required dependencies...")
         try:
             subprocess.run(["which", "dd"], check=True, stdout=subprocess.PIPE)
@@ -108,7 +108,7 @@ class PS3IsoDecrypter:
             iso_key_pairs = []
             iso_files = []
 
-            # Find all ISO files
+            # Find all ISO files in the folder
             for file in os.listdir(self.downloads_dir):
                 if file.lower().endswith('.iso'):
                     iso_path = os.path.join(self.downloads_dir, file)
@@ -120,7 +120,7 @@ class PS3IsoDecrypter:
 
                     iso_files.append(iso_path)
 
-                    # Look for matching .dkey file
+                    # Look for matching .dkey file (same base name)
                     base_name = os.path.splitext(file)[0]
                     dkey_path = os.path.join(self.downloads_dir, base_name + '.dkey')
 
@@ -153,7 +153,7 @@ class PS3IsoDecrypter:
             return False
 
     def load_key(self, key_file):
-        """Load encryption key from file"""
+        """Load encryption key from .dkey file"""
         try:
             with open(key_file, 'r') as f:
                 key_data = f.read().strip()
@@ -203,20 +203,17 @@ class PS3IsoDecrypter:
         self.log(f"Output will be saved to {output_iso}", "info")
 
         try:
-            # This is a simplified representation of the decryption process
-            # Actual PS3 decryption is more complex and requires specific tools
+            # Note: This is a placeholder for the actual decryption process.
+            # For demonstration, it simply copies the file with a progress bar.
 
-            # Create progress bar
             progress = ProgressBar(total_size, prefix=f'Decrypting {os.path.basename(input_iso)}:')
 
-            # Read the ISO in chunks and process it
             with open(input_iso, 'rb') as infile, open(output_iso, 'wb') as outfile:
                 # Read header (typically not encrypted)
                 header = infile.read(0x10000)  # First 64KB
                 outfile.write(header)
 
-                # Apply decryption to the rest using the key
-                # This is a placeholder for the actual decryption algorithm
+                # Apply decryption to the rest using the key (not implemented here)
                 chunk_size = 1024 * 1024  # 1MB chunks
                 processed_size = len(header)
                 progress.update(processed_size)
@@ -226,12 +223,9 @@ class PS3IsoDecrypter:
                     if not chunk:
                         break
 
-                    # Here you would include the actual decryption logic
-                    # This is where you'd use the key_data with the appropriate
-                    # decryption algorithm for PS3 ISOs
+                    # Here you would include the actual decryption logic using key_data
 
-                    # For now, we're just copying the data as a placeholder
-                    outfile.write(chunk)
+                    outfile.write(chunk)  # Placeholder: just copies
 
                     processed_size += len(chunk)
                     progress.update(processed_size)
@@ -241,7 +235,7 @@ class PS3IsoDecrypter:
 
         except KeyboardInterrupt:
             self.log("\nDecryption cancelled by user", "warning")
-            # Try to remove the incomplete file
+            # Remove incomplete file on interruption
             try:
                 if os.path.exists(output_iso):
                     os.remove(output_iso)
@@ -253,8 +247,7 @@ class PS3IsoDecrypter:
         except Exception as e:
             self.log(f"Error during decryption: {str(e)}", "error")
             logging.exception("Exception details:")
-
-            # Try to remove the incomplete file
+            # Remove incomplete file on error
             try:
                 if os.path.exists(output_iso):
                     os.remove(output_iso)
@@ -264,24 +257,23 @@ class PS3IsoDecrypter:
             return False
 
     def verify_output(self, output_iso):
-        """Verify the decrypted ISO"""
+        """Verify the decrypted ISO (size and checksum)"""
         if not os.path.exists(output_iso):
             self.log(f"Output file {output_iso} was not created.", "error")
             return False
 
         self.log(f"Verifying output file {os.path.basename(output_iso)}...", "info")
 
-        # Check file size
+        # Check file size (should not be zero)
         output_size = os.path.getsize(output_iso)
         if output_size == 0:
             self.log(f"Output file is empty (0 bytes)!", "error")
             return False
 
-        # Calculate checksum
+        # Calculate checksum and save MD5 to file
         try:
             md5_hash = hashlib.md5()
 
-            # Create progress bar
             progress = ProgressBar(output_size, prefix=f'Calculating MD5:')
             processed_size = 0
 
@@ -294,7 +286,7 @@ class PS3IsoDecrypter:
             checksum = md5_hash.hexdigest()
             self.log(f"Output file verification successful: MD5={checksum}", "info")
 
-            # Save checksum to a file alongside the ISO
+            # Save checksum to a file
             checksum_file = output_iso + ".md5"
             with open(checksum_file, 'w') as f:
                 f.write(f"{checksum}  {os.path.basename(output_iso)}\n")
@@ -325,6 +317,7 @@ class PS3IsoDecrypter:
             print("\n" + "="*70)
             self.log(f"Processing {iso_name}...", "info")
 
+            # Decrypt and verify each ISO
             if self.decrypt_iso(iso_path, key_path, output_path):
                 if self.verify_output(output_path):
                     successful += 1
@@ -333,6 +326,7 @@ class PS3IsoDecrypter:
             else:
                 failed += 1
 
+        # Print final results
         print("\n" + "="*70)
         if successful > 0:
             print(f"✅ Successfully decrypted: {successful} ISO files")
@@ -342,17 +336,17 @@ class PS3IsoDecrypter:
         print(f"📂 Decrypted ISOs are stored in: {self.output_dir}")
         print(f"📝 Full log available at: {self.log_file}")
 
-
 def main():
+    # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Decrypt PS3 ISO files from Downloads folder")
     parser.add_argument("-d", "--directory", help="Custom directory to search for ISOs (default: ~/Downloads)")
     parser.add_argument("-o", "--output", help="Output directory for decrypted ISOs (default: ~/Decrypted_PS3_ISOs)")
     parser.add_argument("-v", "--verbose", action="store_true", help="Show verbose output")
-
     args = parser.parse_args()
 
     decrypter = PS3IsoDecrypter()
 
+    # Set custom directories if provided by user
     if args.directory:
         decrypter.downloads_dir = os.path.expanduser(args.directory)
 
@@ -372,7 +366,6 @@ def main():
         print(f"\nUnexpected error: {str(e)}")
         logging.exception("Unhandled exception:")
         print(f"See log file for details: {decrypter.log_file}")
-
 
 if __name__ == "__main__":
     main()
