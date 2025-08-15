@@ -4,7 +4,6 @@ Now I also made an exe for the windows script.
 
 Get decryption keys here https://ps3.aldostools.org/dkey.html
 
-LINUX VERSION NOT TESTED!!
 
 PS3dec.exe is included in the repo since it hasn't been updated in 7 years.
 
